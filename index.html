@@ -1,0 +1,2006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f1419">
+<title>Recruitment Ledger — Vancouver Accounting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ec;
+    --bg-alt: #ebe6dc;
+    --ink: #1a1c1f;
+    --ink-soft: #555a62;
+    --ink-muted: #8b8f96;
+    --line: #d8d3c7;
+    --line-soft: #e4dfd3;
+    --accent: #b54324;
+    --accent-soft: #d96d4e;
+    --gold: #a8862c;
+    --green: #4a6b3a;
+    --card: #ffffff;
+    --shadow-sm: 0 1px 2px rgba(26,28,31,0.04), 0 1px 1px rgba(26,28,31,0.02);
+    --shadow-md: 0 4px 12px rgba(26,28,31,0.06), 0 2px 4px rgba(26,28,31,0.04);
+    --shadow-lg: 0 12px 32px rgba(26,28,31,0.10), 0 4px 8px rgba(26,28,31,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.5;
+    min-height: 100vh;
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* === SIDEBAR === */
+  .sidebar {
+    background: #0f1419;
+    color: #e8e3d5;
+    padding: 28px 22px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    border-right: 1px solid #1f252c;
+  }
+
+  .brand {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #2a3038;
+  }
+
+  .brand-mark {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #f5f2ec;
+    font-style: italic;
+  }
+
+  .brand-mark span {
+    color: var(--accent-soft);
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .brand-sub {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #8b8f96;
+    margin-top: 8px;
+    font-weight: 500;
+  }
+
+  .nav-section {
+    margin-bottom: 24px;
+  }
+
+  .nav-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #6b7079;
+    font-weight: 600;
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #c4bfb3;
+    font-size: 14px;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+    user-select: none;
+  }
+
+  .nav-item:hover {
+    background: #1a1f26;
+    color: #f5f2ec;
+  }
+
+  .nav-item.active {
+    background: #1f252c;
+    color: #f5f2ec;
+    border-color: #2a3038;
+  }
+
+  .nav-item .tier-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .tier-dot.t0 { background: #c4bfb3; }
+  .tier-dot.t1 { background: var(--accent-soft); }
+  .tier-dot.t2 { background: var(--gold); }
+  .tier-dot.t3 { background: #6b8b58; }
+
+  .nav-item .firm-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nav-item .count-badge {
+    font-size: 10px;
+    color: #6b7079;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+  }
+
+  .nav-item.active .count-badge { color: #c4bfb3; }
+
+  /* === MAIN === */
+  .main {
+    padding: 40px 48px 80px;
+    max-width: 1100px;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .page-header {
+    margin-bottom: 36px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .page-eyebrow {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--ink-muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .page-title {
+    font-family: 'Fraunces', serif;
+    font-size: 44px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    color: var(--ink);
+  }
+
+  .page-title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .page-sub {
+    margin-top: 12px;
+    color: var(--ink-soft);
+    font-size: 15px;
+    max-width: 620px;
+  }
+
+  /* === HOME STATS === */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-bottom: 48px;
+  }
+
+  @media (max-width: 1024px) {
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+  }
+
+  .stat-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--line);
+  }
+  .stat-card.events::before { background: var(--accent); }
+  .stat-card.people::before { background: var(--gold); }
+  .stat-card.jobs::before { background: var(--green); }
+  .stat-card.notes::before { background: #6f5d8a; }
+  .stat-card.firms::before { background: #4a5d7a; }
+
+  .stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--ink-muted);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'Fraunces', serif;
+    font-size: 42px;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .stat-meta {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* === FIRM GRID ON HOME === */
+  .section-heading {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+
+  .section-sub {
+    font-size: 13px;
+    color: var(--ink-muted);
+    margin-bottom: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+  }
+
+  .tier-block {
+    margin-bottom: 36px;
+  }
+
+  .firm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  .firm-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .firm-card:hover {
+    border-color: var(--ink);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  .firm-card-name {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    letter-spacing: -0.01em;
+  }
+
+  .firm-card-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    font-size: 11px;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+
+  .firm-card-stats span strong {
+    color: var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    margin-right: 3px;
+  }
+
+  .firm-card.general-card {
+    background: linear-gradient(135deg, #0f1419 0%, #1f252c 100%);
+    color: #f5f2ec;
+    border-color: #0f1419;
+    padding: 22px 24px;
+  }
+  .firm-card.general-card .firm-card-name {
+    color: #f5f2ec;
+    font-style: italic;
+  }
+  .firm-card.general-card .firm-card-stats {
+    color: #8b8f96;
+  }
+  .firm-card.general-card .firm-card-stats span strong {
+    color: #f5f2ec;
+  }
+  .firm-card.general-card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* === FIRM PAGE === */
+  .firm-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--ink-muted);
+    font-weight: 600;
+  }
+
+  .tier-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+  }
+  .tier-pill.t0 { background: rgba(85, 90, 98, 0.12); color: var(--ink-soft); }
+  .tier-pill.t1 { background: rgba(181, 67, 36, 0.1); color: var(--accent); }
+  .tier-pill.t2 { background: rgba(168, 134, 44, 0.12); color: var(--gold); }
+  .tier-pill.t3 { background: rgba(74, 107, 58, 0.12); color: var(--green); }
+
+  /* === TABS === */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 28px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab {
+    padding: 12px 4px;
+    margin-right: 24px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .tab:hover { color: var(--ink-soft); }
+  .tab.active {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab .tab-count {
+    margin-left: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-muted);
+  }
+
+  /* === ENTRY LIST === */
+  .entry-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    border-radius: 6px;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--bg);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .btn.ghost {
+    background: transparent;
+    color: var(--ink);
+  }
+
+  .btn.ghost:hover {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .btn.small {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .btn.danger {
+    background: transparent;
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .btn.danger:hover {
+    background: var(--accent);
+    color: white;
+  }
+
+  .filter-chips {
+    display: flex;
+    gap: 6px;
+  }
+
+  .chip {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: transparent;
+    cursor: pointer;
+    color: var(--ink-soft);
+    transition: all 0.15s ease;
+    font-family: inherit;
+  }
+
+  .chip.active {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+
+  /* === ENTRY CARDS === */
+  .entry-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .entry-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 18px 20px;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+
+  .entry-card:hover {
+    box-shadow: var(--shadow-sm);
+    border-color: #c8c2b3;
+  }
+
+  .entry-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .entry-title {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+    flex: 1;
+  }
+
+  .entry-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .icon-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 5px;
+    border: 1px solid var(--line);
+    background: transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-soft);
+    transition: all 0.15s ease;
+    font-size: 14px;
+  }
+
+  .icon-btn:hover {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+
+  .icon-btn.danger:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .entry-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 10px;
+  }
+
+  .entry-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .entry-meta-item .label {
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .entry-meta-item.firm-origin {
+    padding: 2px 8px 2px 7px;
+    background: var(--bg-alt);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    font-size: 11px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .entry-meta-item.firm-origin .tier-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+  }
+  .entry-meta-item.firm-origin .firm-origin-name {
+    font-size: 11px;
+  }
+
+  .aggregate-note {
+    background: var(--bg-alt);
+    border: 1px solid var(--line-soft);
+    border-left: 3px solid var(--ink-soft);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .aggregate-note em {
+    font-style: italic;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .entry-body {
+    margin-top: 10px;
+    color: var(--ink-soft);
+    font-size: 14px;
+    line-height: 1.6;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line-soft);
+  }
+
+  .entry-body.note-body {
+    white-space: normal;
+    word-break: break-word;
+  }
+  .entry-body.note-body a {
+    color: var(--accent);
+    text-decoration: none;
+    word-break: break-all;
+  }
+  .entry-body.note-body a:hover { text-decoration: underline; }
+
+  .entry-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 13px;
+    word-break: break-all;
+  }
+  .entry-link:hover { text-decoration: underline; }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    font-size: 10px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+  }
+  .status-pill.attended { background: rgba(74, 107, 58, 0.14); color: var(--green); }
+  .status-pill.planned { background: rgba(168, 134, 44, 0.14); color: var(--gold); }
+  .status-pill.missed { background: rgba(181, 67, 36, 0.1); color: var(--accent); }
+
+  .empty-state {
+    background: var(--bg-alt);
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--ink-muted);
+  }
+
+  .empty-state-title {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+
+  .empty-state-text {
+    font-size: 13px;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  /* === MODAL === */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 20, 25, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 100;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 16px;
+    overflow-y: auto;
+  }
+
+  .modal-backdrop.open { display: flex; }
+
+  .modal {
+    background: var(--card);
+    border-radius: 12px;
+    max-width: 560px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    animation: slideUp 0.2s ease;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-title {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  .modal-body {
+    padding: 24px;
+  }
+
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: var(--bg-alt);
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .field-label .optional {
+    color: var(--ink-muted);
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    margin-left: 4px;
+    font-size: 11px;
+    font-style: italic;
+  }
+
+  .field input,
+  .field textarea,
+  .field select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--bg);
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    transition: border-color 0.15s ease;
+  }
+
+  .field input:focus,
+  .field textarea:focus,
+  .field select:focus {
+    outline: none;
+    border-color: var(--ink);
+    background: white;
+  }
+
+  .field textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* === MOBILE TOGGLE === */
+  .mobile-header {
+    display: none;
+    padding: 14px 18px;
+    background: #0f1419;
+    color: #f5f2ec;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #2a3038;
+  }
+
+  .mobile-header .brand-mark {
+    font-size: 20px;
+  }
+
+  .menu-toggle {
+    background: transparent;
+    border: 1px solid #2a3038;
+    color: #f5f2ec;
+    width: 38px;
+    height: 38px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+
+    .mobile-header { display: flex; }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 280px;
+      max-width: 85vw;
+      z-index: 60;
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .sidebar.open { transform: translateX(0); }
+
+    .sidebar-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 55;
+      display: none;
+    }
+    .sidebar-backdrop.open { display: block; }
+
+    .main {
+      padding: 24px 18px 60px;
+    }
+
+    .page-title { font-size: 32px; }
+
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .stat-value { font-size: 32px; }
+
+    .firm-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .firm-card { padding: 14px; }
+    .firm-card-name { font-size: 15px; }
+
+    .entry-card { padding: 14px 16px; }
+
+    .field-row { grid-template-columns: 1fr; }
+
+    .entry-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .filter-chips { overflow-x: auto; padding-bottom: 4px; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .firm-grid { grid-template-columns: 1fr; }
+    .page-title { font-size: 28px; }
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ink-muted); }
+
+  .sidebar ::-webkit-scrollbar-thumb { background: #2a3038; }
+
+  /* Floating action button on mobile */
+  .fab {
+    display: none;
+  }
+
+  @media (max-width: 900px) {
+    .fab {
+      display: flex;
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      box-shadow: var(--shadow-lg);
+      cursor: pointer;
+      z-index: 40;
+      font-size: 24px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="mobile-header">
+  <div class="brand-mark"><span>R</span>ecruit<em>·</em>Ledger</div>
+  <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+</div>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><span>R</span>ecruit<em>·</em>Ledger</div>
+      <div class="brand-sub">Vancouver Accounting</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" data-page="home">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
+        <span class="firm-name">Home</span>
+      </div>
+    </div>
+
+    <div class="nav-section" id="navTier0" style="padding-bottom: 16px; border-bottom: 1px solid #2a3038; margin-bottom: 20px;">
+      <div class="nav-label">General</div>
+    </div>
+
+    <div class="nav-section" id="navTier1">
+      <div class="nav-label">Tier 01 · Big Four</div>
+    </div>
+
+    <div class="nav-section" id="navTier2">
+      <div class="nav-label">Tier 02 · Mid-Market</div>
+    </div>
+
+    <div class="nav-section" id="navTier3">
+      <div class="nav-label">Tier 03 · Regional</div>
+    </div>
+
+    <div class="nav-section" style="margin-top: 32px; padding-top: 20px; border-top: 1px solid #2a3038;">
+      <div class="nav-item" id="exportBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span class="firm-name">Export data</span>
+      </div>
+      <div class="nav-item" id="importBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span class="firm-name">Import data</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main" id="main"></main>
+</div>
+
+<button class="fab" id="fab" aria-label="Add entry">+</button>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modal"></div>
+</div>
+
+<div class="modal-backdrop" id="confirmBackdrop" style="z-index: 200;">
+  <div class="modal" id="confirmModal" style="max-width: 420px;"></div>
+</div>
+
+<input type="file" id="importFile" accept="application/json" style="display:none">
+
+<script>
+// ============ DATA ============
+const FIRMS = [
+  // General (cross-firm / no specific firm)
+  { id: 'general', name: 'General', tier: 0 },
+  // Tier 1: Big 4
+  { id: 'deloitte', name: 'Deloitte', tier: 1 },
+  { id: 'kpmg', name: 'KPMG', tier: 1 },
+  { id: 'pwc', name: 'PwC', tier: 1 },
+  { id: 'ey', name: 'EY', tier: 1 },
+  // Tier 2: Mid-market
+  { id: 'mnp', name: 'MNP', tier: 2 },
+  { id: 'bdo', name: 'BDO Canada', tier: 2 },
+  { id: 'grant-thornton', name: 'Doane Grant Thornton', tier: 2 },
+  { id: 'baker-tilly', name: 'Baker Tilly', tier: 2 },
+  // Tier 3: Vancouver regional
+  { id: 'smythe', name: 'Smythe LLP', tier: 3 },
+  { id: 'manning-elliott', name: 'Manning Elliott', tier: 3 },
+  { id: 'crowe-mackay', name: 'Crowe MacKay', tier: 3 },
+  { id: 'dmcl', name: 'DMCL', tier: 3 },
+  { id: 'knv', name: 'KNV CPA', tier: 3 }
+];
+
+const STORAGE_KEY = 'recruitment_ledger_v1';
+
+// ============ STATE ============
+let state = {
+  entries: [],   // { id, firmId, type: 'event'|'person'|'job', ...fields, createdAt }
+  view: { page: 'home', firmId: null, tab: 'events', filter: 'all' }
+};
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.entries) state.entries = parsed.entries;
+    }
+  } catch (e) { console.error('Failed to load state', e); }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ entries: state.entries }));
+  } catch (e) { console.error('Failed to save state', e); }
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function entriesFor(firmId, type) {
+  return state.entries
+    .filter(e => e.firmId === firmId && e.type === type)
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  try {
+    // YYYY-MM-DD strings from <input type="date"> get parsed as UTC midnight by `new Date()`,
+    // which becomes the previous day in any negative-offset timezone (incl. Vancouver).
+    // Parse the parts manually so the date is interpreted in LOCAL time.
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(d));
+    const date = m
+      ? new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10))
+      : new Date(d);
+    if (isNaN(date)) return d;
+    return date.toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' });
+  } catch { return d; }
+}
+
+// ============ RENDER: SIDEBAR ============
+function renderSidebar() {
+  [0, 1, 2, 3].forEach(tier => {
+    const container = document.getElementById('navTier' + tier);
+    // Remove old firm items (keep the label)
+    [...container.querySelectorAll('.nav-item')].forEach(n => n.remove());
+
+    FIRMS.filter(f => f.tier === tier).forEach(firm => {
+      const count = state.entries.filter(e => e.firmId === firm.id).length;
+      const item = document.createElement('div');
+      item.className = 'nav-item' + (state.view.page === 'firm' && state.view.firmId === firm.id ? ' active' : '');
+      item.dataset.firmId = firm.id;
+      item.innerHTML = `
+        <span class="tier-dot t${tier}"></span>
+        <span class="firm-name">${escapeHtml(firm.name)}</span>
+        <span class="count-badge">${count}</span>
+      `;
+      item.addEventListener('click', () => {
+        state.view.page = 'firm';
+        state.view.firmId = firm.id;
+        state.view.tab = 'events';
+        state.view.filter = 'all';
+        closeMobileSidebar();
+        render();
+      });
+      container.appendChild(item);
+    });
+  });
+
+  // Home nav
+  document.querySelectorAll('.nav-item[data-page="home"]').forEach(n => {
+    n.classList.toggle('active', state.view.page === 'home');
+  });
+}
+
+// ============ RENDER: HOME ============
+function renderHome() {
+  const events = state.entries.filter(e => e.type === 'event');
+  const people = state.entries.filter(e => e.type === 'person');
+  const jobs = state.entries.filter(e => e.type === 'job');
+  const notes = state.entries.filter(e => e.type === 'note');
+  const attended = events.filter(e => e.attended === true).length;
+  const planned = events.filter(e => e.attended === null || e.attended === undefined).length;
+  const firmsWithActivity = new Set(state.entries.filter(e => e.firmId !== 'general').map(e => e.firmId)).size;
+  const totalFirms = FIRMS.filter(f => f.id !== 'general').length;
+
+  const tierBlocks = [1, 2, 3].map(tier => {
+    const tierName = tier === 1 ? 'Big Four' : tier === 2 ? 'Mid-Market' : 'Regional · Vancouver';
+    const firmCards = FIRMS.filter(f => f.tier === tier).map(firm => {
+      const fe = state.entries.filter(e => e.firmId === firm.id);
+      const ev = fe.filter(e => e.type === 'event').length;
+      const pe = fe.filter(e => e.type === 'person').length;
+      const jb = fe.filter(e => e.type === 'job').length;
+      const nt = fe.filter(e => e.type === 'note').length;
+      return `
+        <div class="firm-card" data-firm-id="${firm.id}">
+          <div class="firm-card-name">${escapeHtml(firm.name)}</div>
+          <div class="firm-card-stats">
+            <span><strong>${ev}</strong>events</span>
+            <span><strong>${pe}</strong>people</span>
+            <span><strong>${jb}</strong>jobs</span>
+            <span><strong>${nt}</strong>notes</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="tier-block">
+        <div class="section-heading">Tier 0${tier}</div>
+        <div class="section-sub">${tierName}</div>
+        <div class="firm-grid">${firmCards}</div>
+      </div>
+    `;
+  }).join('');
+
+  // General block (above Tier 1)
+  const generalFirm = FIRMS.find(f => f.id === 'general');
+  const ge = state.entries.filter(e => e.firmId === 'general');
+  const gEv = ge.filter(e => e.type === 'event').length;
+  const gPe = ge.filter(e => e.type === 'person').length;
+  const gJb = ge.filter(e => e.type === 'job').length;
+  const gNt = ge.filter(e => e.type === 'note').length;
+  const generalBlock = `
+    <div class="tier-block">
+      <div class="section-heading">General</div>
+      <div class="section-sub">All firms aggregated · Career fairs · Mixers</div>
+      <div class="firm-card general-card" data-firm-id="general">
+        <div class="firm-card-name">${escapeHtml(generalFirm.name)}</div>
+        <div class="firm-card-stats">
+          <span><strong>${gEv}</strong>events</span>
+          <span><strong>${gPe}</strong>people</span>
+          <span><strong>${gJb}</strong>jobs</span>
+          <span><strong>${gNt}</strong>notes</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('main').innerHTML = `
+    <div class="page-header">
+      <div class="page-eyebrow">Dashboard · ${new Date().toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+      <h1 class="page-title">Recruitment <em>Ledger</em></h1>
+      <p class="page-sub">A private record of events, people, applications, and notes across Vancouver's accounting firms. All data is stored locally on this device.</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card events">
+        <div class="stat-label">Events</div>
+        <div class="stat-value">${events.length}</div>
+        <div class="stat-meta">${attended} attended · ${planned} planned</div>
+      </div>
+      <div class="stat-card people">
+        <div class="stat-label">People</div>
+        <div class="stat-value">${people.length}</div>
+        <div class="stat-meta">contacts logged</div>
+      </div>
+      <div class="stat-card jobs">
+        <div class="stat-label">Jobs</div>
+        <div class="stat-value">${jobs.length}</div>
+        <div class="stat-meta">applications tracked</div>
+      </div>
+      <div class="stat-card notes">
+        <div class="stat-label">Notes</div>
+        <div class="stat-value">${notes.length}</div>
+        <div class="stat-meta">references saved</div>
+      </div>
+      <div class="stat-card firms">
+        <div class="stat-label">Firms</div>
+        <div class="stat-value">${firmsWithActivity}<span style="font-size:18px;color:var(--ink-muted);"> / ${totalFirms}</span></div>
+        <div class="stat-meta">with activity</div>
+      </div>
+    </div>
+
+    ${generalBlock}
+    ${tierBlocks}
+  `;
+
+  document.querySelectorAll('.firm-card').forEach(card => {
+    card.addEventListener('click', () => {
+      state.view.page = 'firm';
+      state.view.firmId = card.dataset.firmId;
+      state.view.tab = 'events';
+      state.view.filter = 'all';
+      render();
+    });
+  });
+}
+
+// ============ RENDER: FIRM PAGE ============
+function renderFirm() {
+  const firm = FIRMS.find(f => f.id === state.view.firmId);
+  if (!firm) { state.view.page = 'home'; render(); return; }
+
+  const isGeneral = firm.id === 'general';
+
+  // On the General page, all four tabs aggregate across every firm.
+  const events = isGeneral
+    ? state.entries.filter(e => e.type === 'event').sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+    : entriesFor(firm.id, 'event');
+  const people = isGeneral
+    ? state.entries.filter(e => e.type === 'person').sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+    : entriesFor(firm.id, 'person');
+  const jobs = isGeneral
+    ? state.entries.filter(e => e.type === 'job').sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+    : entriesFor(firm.id, 'job');
+  const notes = isGeneral
+    ? state.entries.filter(e => e.type === 'note').sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+    : entriesFor(firm.id, 'note');
+
+  const tabs = [
+    { key: 'events', label: 'Events', count: events.length },
+    { key: 'people', label: 'People', count: people.length },
+    { key: 'jobs', label: 'Jobs', count: jobs.length },
+    { key: 'notes', label: 'Notes', count: notes.length }
+  ];
+
+  let listHTML = '';
+  let toolbarFilter = '';
+
+  if (state.view.tab === 'events') {
+    let filtered = events;
+    if (state.view.filter === 'attended') filtered = events.filter(e => e.attended === true);
+    else if (state.view.filter === 'planned') filtered = events.filter(e => e.attended === null || e.attended === undefined);
+    else if (state.view.filter === 'missed') filtered = events.filter(e => e.attended === false);
+
+    toolbarFilter = `
+      <div class="filter-chips">
+        <button class="chip ${state.view.filter==='all'?'active':''}" data-filter="all">All</button>
+        <button class="chip ${state.view.filter==='planned'?'active':''}" data-filter="planned">Planned</button>
+        <button class="chip ${state.view.filter==='attended'?'active':''}" data-filter="attended">Attended</button>
+        <button class="chip ${state.view.filter==='missed'?'active':''}" data-filter="missed">Missed</button>
+      </div>
+    `;
+
+    listHTML = filtered.length === 0
+      ? renderEmpty(
+          'No events yet',
+          isGeneral
+            ? 'This page shows every event from every firm, plus any you add here for cross-firm events like career fairs. Add one below, or visit a firm page to add a firm-specific event.'
+            : 'Add information sessions, networking nights, coffee chats, or campus events you plan to attend.'
+        )
+      : `<div class="entry-list">${filtered.map(renderEventCard).join('')}</div>`;
+  } else if (state.view.tab === 'people') {
+    listHTML = people.length === 0
+      ? renderEmpty(
+          'No people logged yet',
+          isGeneral
+            ? 'This page shows every person from every firm, plus any you add here that aren\'t tied to a specific firm. Record recruiters, partners, and associates you connect with — name, optional contact info, the event, and notes on what you discussed.'
+            : 'Record recruiters, partners, and associates you connect with — name, optional contact info, the event, and notes on what you discussed.'
+        )
+      : `<div class="entry-list">${people.map(renderPersonCard).join('')}</div>`;
+  } else if (state.view.tab === 'jobs') {
+    listHTML = jobs.length === 0
+      ? renderEmpty(
+          'No job applications yet',
+          isGeneral
+            ? 'This page shows every job application from every firm, plus any you add here that aren\'t tied to a specific firm. Track applications with posting links, dates applied, documents submitted, and your own notes on each role.'
+            : 'Track applications with posting links, dates applied, documents submitted, and your own notes on each role.'
+        )
+      : `<div class="entry-list">${jobs.map(renderJobCard).join('')}</div>`;
+  } else if (state.view.tab === 'notes') {
+    listHTML = notes.length === 0
+      ? renderEmpty(
+          'No notes yet',
+          isGeneral
+            ? 'This page shows every note from every firm, plus any you add here for cross-firm references. Use notes for job board links, recruiter contact lists, deadlines, or anything else worth remembering.'
+            : 'Use notes for job board links, recruiter contact lists, application deadlines, firm-specific research, or anything else you want to remember about this firm.'
+        )
+      : `<div class="entry-list">${notes.map(renderNoteCard).join('')}</div>`;
+  }
+
+  const tierName = firm.tier === 0 ? 'Cross-firm · Career fairs · Mixers' : firm.tier === 1 ? 'Big Four' : firm.tier === 2 ? 'Mid-Market' : 'Regional';
+  const tierLabel = firm.tier === 0 ? 'General' : `Tier 0${firm.tier}`;
+
+  document.getElementById('main').innerHTML = `
+    <div class="page-header">
+      <div class="page-eyebrow">
+        <span class="tier-pill t${firm.tier}">${tierLabel} · ${tierName}</span>
+      </div>
+      <h1 class="page-title">${escapeHtml(firm.name)}</h1>
+    </div>
+
+    <div class="tabs">
+      ${tabs.map(t => `
+        <div class="tab ${state.view.tab===t.key?'active':''}" data-tab="${t.key}">
+          ${t.label}<span class="tab-count">${t.count}</span>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="entry-toolbar">
+      ${toolbarFilter || '<div></div>'}
+      <button class="btn" id="addEntryBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add ${state.view.tab === 'events' ? 'event' : state.view.tab === 'people' ? 'person' : state.view.tab === 'jobs' ? 'job' : 'note'}
+      </button>
+    </div>
+
+    ${(() => {
+      if (!isGeneral) return '';
+      const tabCounts = { events: events.length, people: people.length, jobs: jobs.length, notes: notes.length };
+      const tabLabels = { events: ['events', 'an event'], people: ['people', 'a person'], jobs: ['job applications', 'a job'], notes: ['notes', 'a note'] };
+      const tab = state.view.tab;
+      if (!tabCounts[tab] || !tabLabels[tab]) return '';
+      const [plural, singular] = tabLabels[tab];
+      return `
+        <div class="aggregate-note">
+          Showing all ${plural} across every firm. Adding ${singular} here saves it under <em>General</em>; entries from other firms are read-only here — tap the arrow icon to open them on their firm page.
+        </div>
+      `;
+    })()}
+
+    ${listHTML}
+  `;
+
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      state.view.tab = t.dataset.tab;
+      state.view.filter = 'all';
+      render();
+    });
+  });
+  document.querySelectorAll('.chip').forEach(c => {
+    c.addEventListener('click', () => {
+      state.view.filter = c.dataset.filter;
+      render();
+    });
+  });
+  document.getElementById('addEntryBtn').addEventListener('click', () => openEntryModal(state.view.tab));
+
+  document.querySelectorAll('.entry-card').forEach(card => {
+    const id = card.dataset.id;
+    const editBtn = card.querySelector('.edit-btn');
+    const deleteBtn = card.querySelector('.delete-btn');
+    const toggleBtn = card.querySelector('.toggle-attended-btn');
+    const goToFirmBtn = card.querySelector('.go-to-firm-btn');
+    if (editBtn) editBtn.addEventListener('click', () => openEntryModal(card.dataset.type, id));
+    if (deleteBtn) deleteBtn.addEventListener('click', () => deleteEntry(id));
+    if (toggleBtn) toggleBtn.addEventListener('click', () => toggleAttended(id));
+    if (goToFirmBtn) goToFirmBtn.addEventListener('click', () => {
+      const targetFirmId = card.dataset.firm;
+      if (!targetFirmId) return;
+      state.view.page = 'firm';
+      state.view.firmId = targetFirmId;
+      state.view.tab = 'events';
+      state.view.filter = 'all';
+      render();
+    });
+  });
+}
+
+function renderEmpty(title, text) {
+  return `
+    <div class="empty-state">
+      <div class="empty-state-title">${escapeHtml(title)}</div>
+      <div class="empty-state-text">${escapeHtml(text)}</div>
+    </div>
+  `;
+}
+
+function renderEventCard(e) {
+  let statusPill = '';
+  let toggleLabel = '';
+  if (e.attended === true) {
+    statusPill = '<span class="status-pill attended">● Attended</span>';
+    toggleLabel = 'Mark as not attended';
+  } else if (e.attended === false) {
+    statusPill = '<span class="status-pill missed">○ Missed</span>';
+    toggleLabel = 'Mark as attended';
+  } else {
+    statusPill = '<span class="status-pill planned">◇ Planned</span>';
+    toggleLabel = 'Mark as attended';
+  }
+
+  // Show firm origin badge when viewing this card on a page that isn't its home firm
+  // (i.e., on the General page's aggregated events view).
+  const isForeign = state.view.firmId !== e.firmId;
+  const originFirm = isForeign ? FIRMS.find(f => f.id === e.firmId) : null;
+  // If isForeign is true but originFirm doesn't exist, the entry references a firm
+  // not in the FIRMS list — treat it as local (allow edit/delete in place) to keep
+  // the entry recoverable rather than stranding it.
+  const isOrphan = isForeign && !originFirm;
+  const isForeignKnown = isForeign && !!originFirm;
+  const firmBadge = originFirm
+    ? `<span class="entry-meta-item firm-origin" title="From ${escapeHtml(originFirm.name)}">
+         <span class="tier-dot t${originFirm.tier}"></span>
+         <span class="firm-origin-name">${escapeHtml(originFirm.name)}</span>
+       </span>`
+    : (isOrphan
+        ? `<span class="entry-meta-item firm-origin" title="Unknown firm">
+             <span class="tier-dot t0"></span>
+             <span class="firm-origin-name">Unknown (${escapeHtml(e.firmId)})</span>
+           </span>`
+        : '');
+
+  return `
+    <div class="entry-card" data-id="${e.id}" data-type="event" data-firm="${escapeHtml(e.firmId)}">
+      <div class="entry-head">
+        <div>
+          <div class="entry-title">${escapeHtml(e.title || 'Untitled event')}</div>
+          <div class="entry-meta">
+            ${statusPill}
+            ${firmBadge}
+            ${e.date ? `<span class="entry-meta-item"><span class="label">Date</span>${escapeHtml(fmtDate(e.date))}</span>` : ''}
+            ${e.location ? `<span class="entry-meta-item"><span class="label">Where</span>${escapeHtml(e.location)}</span>` : ''}
+          </div>
+        </div>
+        <div class="entry-actions">
+          <button class="icon-btn toggle-attended-btn" title="${toggleLabel}" aria-label="${toggleLabel}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+          ${isForeignKnown
+            ? `<button class="icon-btn go-to-firm-btn" title="Open on ${escapeHtml(originFirm.name)} page" aria-label="Open on firm page">
+                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><polyline points="7 7 17 7 17 17"/></svg>
+               </button>`
+            : `<button class="icon-btn edit-btn" title="Edit" aria-label="Edit">
+                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+               </button>
+               <button class="icon-btn danger delete-btn" title="Delete" aria-label="Delete">
+                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+               </button>`
+          }
+        </div>
+      </div>
+      ${e.notes ? `<div class="entry-body">${escapeHtml(e.notes)}</div>` : ''}
+    </div>
+  `;
+}
+
+function renderPersonCard(p) {
+  // Mirror the renderEventCard pattern so people also aggregate cleanly on General.
+  const isForeign = state.view.firmId !== p.firmId;
+  const originFirm = isForeign ? FIRMS.find(f => f.id === p.firmId) : null;
+  const isOrphan = isForeign && !originFirm;
+  const isForeignKnown = isForeign && !!originFirm;
+  const firmBadge = originFirm
+    ? `<span class="entry-meta-item firm-origin" title="From ${escapeHtml(originFirm.name)}">
+         <span class="tier-dot t${originFirm.tier}"></span>
+         <span class="firm-origin-name">${escapeHtml(originFirm.name)}</span>
+       </span>`
+    : (isOrphan
+        ? `<span class="entry-meta-item firm-origin" title="Unknown firm">
+             <span class="tier-dot t0"></span>
+             <span class="firm-origin-name">Unknown (${escapeHtml(p.firmId)})</span>
+           </span>`
+        : '');
+
+  return `
+    <div class="entry-card" data-id="${p.id}" data-type="person" data-firm="${escapeHtml(p.firmId)}">
+      <div class="entry-head">
+        <div>
+          <div class="entry-title">${escapeHtml(p.name || 'Unnamed contact')}</div>
+          <div class="entry-meta">
+            ${firmBadge}
+            ${p.role ? `<span class="entry-meta-item"><span class="label">Role</span>${escapeHtml(p.role)}</span>` : ''}
+            ${p.event ? `<span class="entry-meta-item"><span class="label">Met at</span>${escapeHtml(p.event)}</span>` : ''}
+            ${p.contact ? `<span class="entry-meta-item"><span class="label">Contact</span>${escapeHtml(p.contact)}</span>` : ''}
+          </div>
+        </div>
+        <div class="entry-actions">
+          ${isForeignKnown
+            ? `<button class="icon-btn go-to-firm-btn" title="Open on ${escapeHtml(originFirm.name)} page" aria-label="Open on firm page">
+                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><polyline points="7 7 17 7 17 17"/></svg>
+               </button>`
+            : `<button class="icon-btn edit-btn" title="Edit" aria-label="Edit">
+                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+               </button>
+               <button class="icon-btn danger delete-btn" title="Delete" aria-label="Delete">
+                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+               </button>`
+          }
+        </div>
+      </div>
+      ${p.notes ? `<div class="entry-body">${escapeHtml(p.notes)}</div>` : ''}
+    </div>
+  `;
+}
+
+function renderJobCard(j) {
+  // Mirror the renderEventCard pattern so jobs also aggregate cleanly on General.
+  const isForeign = state.view.firmId !== j.firmId;
+  const originFirm = isForeign ? FIRMS.find(f => f.id === j.firmId) : null;
+  const isOrphan = isForeign && !originFirm;
+  const isForeignKnown = isForeign && !!originFirm;
+  const firmBadge = originFirm
+    ? `<span class="entry-meta-item firm-origin" title="From ${escapeHtml(originFirm.name)}">
+         <span class="tier-dot t${originFirm.tier}"></span>
+         <span class="firm-origin-name">${escapeHtml(originFirm.name)}</span>
+       </span>`
+    : (isOrphan
+        ? `<span class="entry-meta-item firm-origin" title="Unknown firm">
+             <span class="tier-dot t0"></span>
+             <span class="firm-origin-name">Unknown (${escapeHtml(j.firmId)})</span>
+           </span>`
+        : '');
+
+  return `
+    <div class="entry-card" data-id="${j.id}" data-type="job" data-firm="${escapeHtml(j.firmId)}">
+      <div class="entry-head">
+        <div>
+          <div class="entry-title">${escapeHtml(j.title || 'Untitled role')}</div>
+          <div class="entry-meta">
+            ${firmBadge}
+            ${j.dateApplied ? `<span class="entry-meta-item"><span class="label">Applied</span>${escapeHtml(fmtDate(j.dateApplied))}</span>` : ''}
+            ${j.documents ? `<span class="entry-meta-item"><span class="label">Submitted</span>${escapeHtml(j.documents)}</span>` : ''}
+          </div>
+          ${j.link ? `<div style="margin-top:8px;"><a class="entry-link" href="${escapeHtml(j.link)}" target="_blank" rel="noopener noreferrer">↗ ${escapeHtml(j.link)}</a></div>` : ''}
+        </div>
+        <div class="entry-actions">
+          ${isForeignKnown
+            ? `<button class="icon-btn go-to-firm-btn" title="Open on ${escapeHtml(originFirm.name)} page" aria-label="Open on firm page">
+                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><polyline points="7 7 17 7 17 17"/></svg>
+               </button>`
+            : `<button class="icon-btn edit-btn" title="Edit" aria-label="Edit">
+                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+               </button>
+               <button class="icon-btn danger delete-btn" title="Delete" aria-label="Delete">
+                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+               </button>`
+          }
+        </div>
+      </div>
+      ${j.notes ? `<div class="entry-body">${escapeHtml(j.notes)}</div>` : ''}
+    </div>
+  `;
+}
+
+function renderNoteCard(n) {
+  // Mirror the renderEventCard pattern so notes also aggregate cleanly on General.
+  const isForeign = state.view.firmId !== n.firmId;
+  const originFirm = isForeign ? FIRMS.find(f => f.id === n.firmId) : null;
+  const isOrphan = isForeign && !originFirm;
+  const isForeignKnown = isForeign && !!originFirm;
+  const firmBadge = originFirm
+    ? `<span class="entry-meta-item firm-origin" title="From ${escapeHtml(originFirm.name)}">
+         <span class="tier-dot t${originFirm.tier}"></span>
+         <span class="firm-origin-name">${escapeHtml(originFirm.name)}</span>
+       </span>`
+    : (isOrphan
+        ? `<span class="entry-meta-item firm-origin" title="Unknown firm">
+             <span class="tier-dot t0"></span>
+             <span class="firm-origin-name">Unknown (${escapeHtml(n.firmId)})</span>
+           </span>`
+        : '');
+
+  // Linkify URLs in note body so job board links etc. are clickable.
+  const bodyHtml = n.body ? linkify(n.body) : '';
+
+  return `
+    <div class="entry-card" data-id="${n.id}" data-type="note" data-firm="${escapeHtml(n.firmId)}">
+      <div class="entry-head">
+        <div>
+          <div class="entry-title">${escapeHtml(n.title || 'Untitled note')}</div>
+          ${firmBadge ? `<div class="entry-meta">${firmBadge}</div>` : ''}
+        </div>
+        <div class="entry-actions">
+          ${isForeignKnown
+            ? `<button class="icon-btn go-to-firm-btn" title="Open on ${escapeHtml(originFirm.name)} page" aria-label="Open on firm page">
+                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><polyline points="7 7 17 7 17 17"/></svg>
+               </button>`
+            : `<button class="icon-btn edit-btn" title="Edit" aria-label="Edit">
+                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+               </button>
+               <button class="icon-btn danger delete-btn" title="Delete" aria-label="Delete">
+                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+               </button>`
+          }
+        </div>
+      </div>
+      ${bodyHtml ? `<div class="entry-body note-body">${bodyHtml}</div>` : ''}
+    </div>
+  `;
+}
+
+// Convert URLs in plain text to clickable links, escaping the rest.
+function linkify(text) {
+  const urlRe = /(https?:\/\/[^\s<>"']+)/g;
+  const out = [];
+  let lastIndex = 0;
+  let m;
+  while ((m = urlRe.exec(text)) !== null) {
+    out.push(escapeHtml(text.slice(lastIndex, m.index)));
+    const url = m[0];
+    out.push(`<a class="entry-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>`);
+    lastIndex = m.index + url.length;
+  }
+  out.push(escapeHtml(text.slice(lastIndex)));
+  // Preserve line breaks.
+  return out.join('').replace(/\n/g, '<br>');
+}
+
+// ============ MODAL ============
+function openEntryModal(tab, editId) {
+  const type = tab === 'events' ? 'event' : tab === 'people' ? 'person' : tab === 'jobs' ? 'job' : tab === 'notes' ? 'note' : tab;
+  const existing = editId ? state.entries.find(e => e.id === editId) : null;
+  const isEdit = !!existing;
+  const e = existing || {};
+
+  let fields = '';
+  let title = '';
+
+  if (type === 'event') {
+    title = isEdit ? 'Edit event' : 'New event';
+    fields = `
+      <div class="field">
+        <label class="field-label">Event title</label>
+        <input type="text" id="f_title" value="${escapeHtml(e.title || '')}" placeholder="e.g. Fall Information Session" autofocus>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Date <span class="optional">optional</span></label>
+          <input type="date" id="f_date" value="${escapeHtml(e.date || '')}">
+        </div>
+        <div class="field">
+          <label class="field-label">Status</label>
+          <select id="f_attended">
+            <option value="planned" ${e.attended === undefined || e.attended === null ? 'selected' : ''}>Planned</option>
+            <option value="attended" ${e.attended === true ? 'selected' : ''}>Attended</option>
+            <option value="missed" ${e.attended === false ? 'selected' : ''}>Missed</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Location <span class="optional">optional</span></label>
+        <input type="text" id="f_location" value="${escapeHtml(e.location || '')}" placeholder="e.g. UBC Sauder, virtual, etc.">
+      </div>
+      <div class="field">
+        <label class="field-label">Notes <span class="optional">optional</span></label>
+        <textarea id="f_notes" placeholder="Anything you want to remember...">${escapeHtml(e.notes || '')}</textarea>
+      </div>
+    `;
+  } else if (type === 'person') {
+    title = isEdit ? 'Edit person' : 'New person';
+    fields = `
+      <div class="field">
+        <label class="field-label">Name</label>
+        <input type="text" id="f_name" value="${escapeHtml(e.name || '')}" placeholder="Full name" autofocus>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Role <span class="optional">optional</span></label>
+          <input type="text" id="f_role" value="${escapeHtml(e.role || '')}" placeholder="e.g. Campus Recruiter">
+        </div>
+        <div class="field">
+          <label class="field-label">Contact <span class="optional">optional</span></label>
+          <input type="text" id="f_contact" value="${escapeHtml(e.contact || '')}" placeholder="email, LinkedIn, etc.">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Event spoken at <span class="optional">optional</span></label>
+        <input type="text" id="f_event" value="${escapeHtml(e.event || '')}" placeholder="e.g. Info session, coffee chat">
+      </div>
+      <div class="field">
+        <label class="field-label">Conversation summary <span class="optional">optional</span></label>
+        <textarea id="f_notes" placeholder="What did you discuss?">${escapeHtml(e.notes || '')}</textarea>
+      </div>
+    `;
+  } else if (type === 'job') {
+    title = isEdit ? 'Edit job' : 'New job';
+    fields = `
+      <div class="field">
+        <label class="field-label">Role / position title</label>
+        <input type="text" id="f_title" value="${escapeHtml(e.title || '')}" placeholder="e.g. Audit Associate – Co-op" autofocus>
+      </div>
+      <div class="field">
+        <label class="field-label">Posting link <span class="optional">optional</span></label>
+        <input type="url" id="f_link" value="${escapeHtml(e.link || '')}" placeholder="https://...">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Date applied <span class="optional">optional</span></label>
+          <input type="date" id="f_dateApplied" value="${escapeHtml(e.dateApplied || '')}">
+        </div>
+        <div class="field">
+          <label class="field-label">Documents submitted <span class="optional">optional</span></label>
+          <input type="text" id="f_documents" value="${escapeHtml(e.documents || '')}" placeholder="e.g. Resume, cover letter, transcript">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Description / notes <span class="optional">optional</span></label>
+        <textarea id="f_notes" placeholder="Brief description of the job, requirements, why you're interested...">${escapeHtml(e.notes || '')}</textarea>
+      </div>
+    `;
+  } else if (type === 'note') {
+    title = isEdit ? 'Edit note' : 'New note';
+    fields = `
+      <div class="field">
+        <label class="field-label">Title</label>
+        <input type="text" id="f_title" value="${escapeHtml(e.title || '')}" placeholder="e.g. Job board links, application deadlines, etc." autofocus>
+      </div>
+      <div class="field">
+        <label class="field-label">Notes</label>
+        <textarea id="f_body" placeholder="Paste links, jot down anything you want to remember..." style="min-height: 160px;">${escapeHtml(e.body || '')}</textarea>
+      </div>
+    `;
+  }
+
+  const modal = document.getElementById('modal');
+  modal.innerHTML = `
+    <div class="modal-header">
+      <div class="modal-title">${title}</div>
+      <button class="icon-btn" id="modalClose" aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">${fields}</div>
+    <div class="modal-footer">
+      ${isEdit ? '<button class="btn danger" id="modalDelete">Delete</button>' : ''}
+      <button class="btn ghost" id="modalCancel">Cancel</button>
+      <button class="btn" id="modalSave">${isEdit ? 'Save changes' : 'Save'}</button>
+    </div>
+  `;
+
+  document.getElementById('modalBackdrop').classList.add('open');
+
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  document.getElementById('modalCancel').addEventListener('click', closeModal);
+  document.getElementById('modalSave').addEventListener('click', () => saveEntry(type, editId));
+  if (isEdit) {
+    document.getElementById('modalDelete').addEventListener('click', () => {
+      showConfirm('Delete this entry? This cannot be undone.', { okLabel: 'Delete', danger: true }).then(ok => {
+        if (!ok) return;
+        state.entries = state.entries.filter(en => en.id !== editId);
+        saveState();
+        closeModal();
+        render();
+      });
+    });
+  }
+}
+
+function closeModal() {
+  document.getElementById('modalBackdrop').classList.remove('open');
+}
+
+function saveEntry(type, editId) {
+  const get = id => document.getElementById(id) ? document.getElementById(id).value.trim() : '';
+  const firmId = state.view.firmId;
+  const base = editId ? state.entries.find(e => e.id === editId) : { id: uid(), firmId, type, createdAt: Date.now() };
+
+  if (type === 'event') {
+    const title = get('f_title');
+    if (!title) { showAlert('Please enter an event title.'); return; }
+    const status = get('f_attended');
+    base.title = title;
+    base.date = get('f_date');
+    base.location = get('f_location');
+    base.notes = get('f_notes');
+    base.attended = status === 'attended' ? true : status === 'missed' ? false : null;
+  } else if (type === 'person') {
+    const name = get('f_name');
+    if (!name) { showAlert('Please enter a name.'); return; }
+    base.name = name;
+    base.role = get('f_role');
+    base.contact = get('f_contact');
+    base.event = get('f_event');
+    base.notes = get('f_notes');
+  } else if (type === 'job') {
+    const title = get('f_title');
+    if (!title) { showAlert('Please enter a job title.'); return; }
+    base.title = title;
+    base.link = get('f_link');
+    base.dateApplied = get('f_dateApplied');
+    base.documents = get('f_documents');
+    base.notes = get('f_notes');
+  } else if (type === 'note') {
+    const title = get('f_title');
+    if (!title) { showAlert('Please enter a note title.'); return; }
+    base.title = title;
+    base.body = get('f_body');
+  }
+
+  if (!editId) state.entries.push(base);
+  saveState();
+  closeModal();
+  render();
+}
+
+// ============ CUSTOM CONFIRM (works in iframes / embedded contexts where window.confirm is blocked) ============
+function showConfirm(message, { okLabel = 'Confirm', cancelLabel = 'Cancel', danger = false } = {}) {
+  return new Promise(resolve => {
+    const backdrop = document.getElementById('confirmBackdrop');
+    const modal = document.getElementById('confirmModal');
+    const showCancel = cancelLabel && cancelLabel.length > 0;
+    modal.innerHTML = `
+      <div class="modal-body" style="padding: 28px 24px 8px;">
+        <div style="font-family: 'Fraunces', serif; font-size: 18px; line-height: 1.4; color: var(--ink);">${escapeHtml(message)}</div>
+      </div>
+      <div class="modal-footer">
+        ${showCancel ? `<button class="btn ghost" id="confirmCancel">${escapeHtml(cancelLabel)}</button>` : ''}
+        <button class="btn ${danger ? 'danger' : ''}" id="confirmOk">${escapeHtml(okLabel)}</button>
+      </div>
+    `;
+    backdrop.classList.add('open');
+
+    const cleanup = (result) => {
+      backdrop.classList.remove('open');
+      backdrop.removeEventListener('click', onBackdrop);
+      document.removeEventListener('keydown', onKey);
+      resolve(result);
+    };
+    const onOk = () => cleanup(true);
+    const onCancel = () => cleanup(false);
+    const onBackdrop = (e) => { if (e.target.id === 'confirmBackdrop') cleanup(false); };
+    const onKey = (e) => {
+      if (e.key === 'Escape') cleanup(false);
+      if (e.key === 'Enter') cleanup(true);
+    };
+
+    document.getElementById('confirmOk').addEventListener('click', onOk);
+    if (showCancel) document.getElementById('confirmCancel').addEventListener('click', onCancel);
+    backdrop.addEventListener('click', onBackdrop);
+    document.addEventListener('keydown', onKey);
+
+    setTimeout(() => document.getElementById('confirmOk').focus(), 50);
+  });
+}
+
+function showAlert(message) {
+  return showConfirm(message, { okLabel: 'OK', cancelLabel: '' }).then(() => {});
+}
+
+function deleteEntry(id) {
+  showConfirm('Delete this entry? This cannot be undone.', { okLabel: 'Delete', danger: true }).then(ok => {
+    if (!ok) return;
+    state.entries = state.entries.filter(e => e.id !== id);
+    saveState();
+    render();
+  });
+}
+
+function toggleAttended(id) {
+  const e = state.entries.find(x => x.id === id);
+  if (!e) return;
+  // Cycle: planned -> attended -> missed -> planned
+  if (e.attended === null || e.attended === undefined) e.attended = true;
+  else if (e.attended === true) e.attended = false;
+  else e.attended = null;
+  saveState();
+  render();
+}
+
+// ============ EXPORT / IMPORT ============
+function exportData() {
+  const data = JSON.stringify({ entries: state.entries, exportedAt: new Date().toISOString() }, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `recruitment-ledger-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importData(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (!parsed.entries || !Array.isArray(parsed.entries)) throw new Error('Invalid format');
+      showConfirm(`Import ${parsed.entries.length} entries? This will replace your current data.`, { okLabel: 'Import', danger: true }).then(ok => {
+        if (!ok) return;
+        state.entries = parsed.entries;
+        saveState();
+        render();
+        showAlert('Data imported successfully.');
+      });
+    } catch (err) {
+      showAlert('Failed to import: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ============ MOBILE NAV ============
+function openMobileSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarBackdrop').classList.add('open');
+}
+function closeMobileSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').classList.remove('open');
+}
+
+// ============ RENDER ENTRY POINT ============
+function render() {
+  renderSidebar();
+  if (state.view.page === 'home') renderHome();
+  else renderFirm();
+
+  // FAB visibility
+  const fab = document.getElementById('fab');
+  fab.style.display = (state.view.page === 'firm') ? '' : 'none';
+}
+
+// ============ INIT ============
+loadState();
+render();
+
+// Event listeners
+document.querySelectorAll('.nav-item[data-page="home"]').forEach(item => {
+  item.addEventListener('click', () => {
+    state.view.page = 'home';
+    state.view.firmId = null;
+    closeMobileSidebar();
+    render();
+  });
+});
+
+document.getElementById('menuToggle').addEventListener('click', openMobileSidebar);
+document.getElementById('sidebarBackdrop').addEventListener('click', closeMobileSidebar);
+
+document.getElementById('modalBackdrop').addEventListener('click', e => {
+  if (e.target.id === 'modalBackdrop') closeModal();
+});
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  exportData();
+  closeMobileSidebar();
+});
+
+document.getElementById('importBtn').addEventListener('click', () => {
+  document.getElementById('importFile').click();
+  closeMobileSidebar();
+});
+
+document.getElementById('importFile').addEventListener('change', e => {
+  if (e.target.files[0]) importData(e.target.files[0]);
+  e.target.value = '';
+});
+
+document.getElementById('fab').addEventListener('click', () => {
+  if (state.view.page === 'firm') openEntryModal(state.view.tab);
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+</script>
+</body>
+</html>
