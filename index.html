@@ -952,6 +952,163 @@
       font-size: 24px;
     }
   }
+  /* === LOGIN SCREEN === */
+  body.logged-out .sidebar,
+  body.logged-out .mobile-header,
+  body.logged-out .fab,
+  body.logged-out .sidebar-backdrop { display: none !important; }
+  body.logged-out .app { grid-template-columns: 1fr; }
+  body.logged-out .main { padding: 0; max-width: none; }
+
+  .login-screen {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background:
+      radial-gradient(ellipse at top, rgba(181, 67, 36, 0.08), transparent 60%),
+      var(--bg);
+  }
+
+  .login-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 40px 36px 32px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .login-brand {
+    font-family: 'Fraunces', serif;
+    font-size: 30px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    font-style: italic;
+    margin-bottom: 6px;
+  }
+  .login-brand span { color: var(--accent); font-style: normal; font-weight: 600; }
+  .login-brand em { font-style: italic; color: var(--accent); }
+
+  .login-sub {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-muted);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .login-message {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: rgba(181, 67, 36, 0.08);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .login-hint {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--ink-muted);
+    font-style: italic;
+  }
+
+  /* === USER SECTION === */
+  .user-section {
+    margin-top: auto;
+    padding: 16px 4px 0;
+    border-top: 1px solid #2a3038;
+  }
+
+  .user-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 8px;
+  }
+
+  .user-info { flex: 1; min-width: 0; }
+  .user-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #6b7079;
+    font-weight: 600;
+  }
+  .user-name {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    color: #f5f2ec;
+    font-style: italic;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+
+  .user-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 8px 0;
+  }
+
+  .sync-label {
+    font-size: 10px;
+    color: #6b7079;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 500;
+  }
+
+  .user-signout {
+    background: transparent;
+    border: 1px solid #2a3038;
+    color: #c4bfb3;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }
+  .user-signout:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  .sync-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4a5d7a;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+  }
+  .sync-dot.idle { background: #4a5d7a; }
+  .sync-dot.syncing { background: var(--gold); animation: pulse 1.2s ease-in-out infinite; }
+  .sync-dot.saved { background: var(--green); }
+  .sync-dot.error { background: var(--accent); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  /* Make the sidebar a column flex so user section can push to bottom on tall screens */
+  .sidebar { display: flex; flex-direction: column; }
+  .sidebar .nav-section { flex-shrink: 0; }
+
 </style>
 </head>
 <body>
@@ -1006,6 +1163,20 @@
         <span class="firm-name">Import data</span>
       </div>
     </div>
+
+    <div class="user-section">
+      <div class="user-row">
+        <div class="user-info">
+          <div class="user-label">Signed in as</div>
+          <div class="user-name" id="userNameDisplay">—</div>
+        </div>
+        <span class="sync-dot idle" id="syncDot" title="Ready"></span>
+      </div>
+      <div class="user-actions">
+        <span class="sync-label" id="syncLabel">Ready</span>
+        <button class="user-signout" id="signOutBtn">Sign out</button>
+      </div>
+    </div>
   </aside>
 
   <main class="main" id="main"></main>
@@ -1046,28 +1217,92 @@ const FIRMS = [
   { id: 'knv', name: 'KNV CPA', tier: 3 }
 ];
 
-const STORAGE_KEY = 'recruitment_ledger_v1';
+const USERNAME_KEY = 'recruitment_ledger_username';
+const API_BASE = '/api/data';
 
 // ============ STATE ============
 let state = {
-  entries: [],   // { id, firmId, type: 'event'|'person'|'job', ...fields, createdAt }
-  view: { page: 'home', firmId: null, tab: 'events', filter: 'all' }
+  entries: [],   // { id, firmId, type: 'event'|'person'|'job'|'note', ...fields, createdAt }
+  view: { page: 'home', firmId: null, tab: 'events', filter: 'all' },
+  username: null,
+  syncStatus: 'idle'  // 'idle' | 'syncing' | 'error' | 'saved'
 };
 
-function loadState() {
+function getStoredUsername() {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.entries) state.entries = parsed.entries;
-    }
-  } catch (e) { console.error('Failed to load state', e); }
+    const u = localStorage.getItem(USERNAME_KEY);
+    return u && u.length ? u : null;
+  } catch { return null; }
 }
 
-function saveState() {
+function setStoredUsername(name) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ entries: state.entries }));
-  } catch (e) { console.error('Failed to save state', e); }
+    if (name) localStorage.setItem(USERNAME_KEY, name);
+    else localStorage.removeItem(USERNAME_KEY);
+  } catch (e) { console.error('Failed to store username', e); }
+}
+
+// Sanitize username the same way the server does so they always match.
+function normaliseUsername(raw) {
+  if (!raw) return '';
+  return String(raw).trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 40);
+}
+
+async function loadStateFromServer() {
+  if (!state.username) return;
+  setSyncStatus('syncing');
+  try {
+    const res = await fetch(`${API_BASE}/${encodeURIComponent(state.username)}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    state.entries = (data && Array.isArray(data.entries)) ? data.entries : [];
+    setSyncStatus('saved');
+  } catch (e) {
+    console.error('Failed to load from server', e);
+    setSyncStatus('error');
+    // Don't throw — let the app render with whatever we have (empty array on first load).
+  }
+}
+
+// Debounced save so rapid edits coalesce into one request.
+let _saveTimer = null;
+let _savePromiseChain = Promise.resolve();
+function saveState() {
+  if (!state.username) return;
+  setSyncStatus('syncing');
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => {
+    _savePromiseChain = _savePromiseChain.then(async () => {
+      try {
+        const res = await fetch(`${API_BASE}/${encodeURIComponent(state.username)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entries: state.entries })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        setSyncStatus('saved');
+      } catch (e) {
+        console.error('Failed to save to server', e);
+        setSyncStatus('error');
+      }
+    });
+  }, 350);  // 350ms debounce — feels instant but coalesces bursts
+}
+
+function setSyncStatus(status) {
+  state.syncStatus = status;
+  const dot = document.getElementById('syncDot');
+  if (!dot) return;
+  dot.className = 'sync-dot ' + status;
+  const label = {
+    'idle': 'Ready',
+    'syncing': 'Syncing...',
+    'saved': 'Saved',
+    'error': 'Sync error'
+  }[status] || '';
+  dot.title = label;
+  const lbl = document.getElementById('syncLabel');
+  if (lbl) lbl.textContent = label;
 }
 
 function uid() {
@@ -1956,11 +2191,67 @@ function render() {
   // FAB visibility
   const fab = document.getElementById('fab');
   fab.style.display = (state.view.page === 'firm') ? '' : 'none';
+
+  // Username display in sidebar
+  const userNameEl = document.getElementById('userNameDisplay');
+  if (userNameEl) userNameEl.textContent = state.username || '—';
 }
 
-// ============ INIT ============
-loadState();
-render();
+// ============ LOGIN ============
+function showLoginScreen(message) {
+  const main = document.getElementById('main');
+  // Hide sidebar/mobile-header by setting state we can check elsewhere if needed.
+  document.body.classList.add('logged-out');
+  main.innerHTML = `
+    <div class="login-screen">
+      <div class="login-card">
+        <div class="login-brand"><span>R</span>ecruit<em>·</em>Ledger</div>
+        <div class="login-sub">Vancouver Accounting</div>
+        ${message ? `<div class="login-message">${escapeHtml(message)}</div>` : ''}
+        <div class="field" style="margin-top: 24px;">
+          <label class="field-label" for="loginUsername">Your name</label>
+          <input type="text" id="loginUsername" placeholder="e.g. alice" autocomplete="off" autofocus>
+          <div class="login-hint">Type the same name on any device to see your entries. No password needed.</div>
+        </div>
+        <button class="btn" id="loginGo" style="width: 100%; justify-content: center; margin-top: 8px;">Continue →</button>
+      </div>
+    </div>
+  `;
+  const input = document.getElementById('loginUsername');
+  const go = document.getElementById('loginGo');
+  const submit = () => {
+    const cleaned = normaliseUsername(input.value);
+    if (!cleaned) {
+      showAlert('Please enter a name (letters, numbers, dashes, underscores only).');
+      return;
+    }
+    state.username = cleaned;
+    setStoredUsername(cleaned);
+    document.body.classList.remove('logged-out');
+    bootApp();
+  };
+  go.addEventListener('click', submit);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+}
+
+function signOut() {
+  showConfirm('Sign out? Your data stays saved on the server — type your name again any time to get it back.', { okLabel: 'Sign out' }).then(ok => {
+    if (!ok) return;
+    setStoredUsername(null);
+    state.username = null;
+    state.entries = [];
+    state.view = { page: 'home', firmId: null, tab: 'events', filter: 'all' };
+    showLoginScreen();
+  });
+}
+
+async function bootApp() {
+  await loadStateFromServer();
+  render();
+}
+
+// ============ INIT (placed below event listeners further down) ============
+// (See bottom of script)
 
 // Event listeners
 document.querySelectorAll('.nav-item[data-page="home"]').forEach(item => {
@@ -1994,6 +2285,8 @@ document.getElementById('importFile').addEventListener('change', e => {
   e.target.value = '';
 });
 
+document.getElementById('signOutBtn').addEventListener('click', signOut);
+
 document.getElementById('fab').addEventListener('click', () => {
   if (state.view.page === 'firm') openEntryModal(state.view.tab);
 });
@@ -2001,6 +2294,17 @@ document.getElementById('fab').addEventListener('click', () => {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeModal();
 });
+
+// ============ INIT (runs after all event listeners are attached) ============
+(function init() {
+  const storedName = getStoredUsername();
+  if (storedName) {
+    state.username = normaliseUsername(storedName);
+    bootApp();
+  } else {
+    showLoginScreen();
+  }
+})();
 </script>
 </body>
 </html>
