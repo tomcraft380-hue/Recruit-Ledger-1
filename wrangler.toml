@@ -1,0 +1,8 @@
+name = "recruitment-tracker"
+main = "src/index.html"
+compatibility_date = "2024-01-01"
+
+"kv_namespaces": [{
+                    "binding": "KV_BINDING",
+                    "id": "67e86c26829043559b7b93d4f9ab1788"
+                 }]
