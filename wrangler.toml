@@ -1,7 +1,0 @@
-name = "recruitment-tracker"
-main = "functions/api/data/[username].js"
-compatibility_date = "2024-01-01"
-
-[[kv_namespaces]]
-binding = "MY_KV"
-id = "67e86c26829043559b7b93d4f9ab1788"
