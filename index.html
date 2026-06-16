@@ -1169,6 +1169,10 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         <span class="firm-name">Import data</span>
       </div>
+      <div class="nav-item" id="refreshBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        <span class="firm-name">Refresh from server</span>
+      </div>
     </div>
 
     <div class="user-section">
@@ -1257,14 +1261,29 @@ function normaliseUsername(raw) {
   return String(raw).trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 40);
 }
 
+// A stable fingerprint of the entries array so we can detect "did the server
+// change since we last looked at it?". Doesn't have to be cryptographic; it
+// just needs to change whenever the data changes.
+function entriesFingerprint(entries) {
+  if (!Array.isArray(entries)) return '';
+  // Sort by id so order changes don't cause false positives.
+  const sorted = [...entries].sort((a, b) => (a.id || '').localeCompare(b.id || ''));
+  return JSON.stringify(sorted);
+}
+
+// The last fingerprint we observed from the server. Used to detect
+// "server changed under us" before we overwrite it.
+let _lastServerFingerprint = '';
+
 async function loadStateFromServer() {
   if (!state.username) return;
   setSyncStatus('syncing');
   try {
-    const res = await fetch(`${API_BASE}/${encodeURIComponent(state.username)}`);
+    const res = await fetch(`${API_BASE}/${encodeURIComponent(state.username)}`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     state.entries = (data && Array.isArray(data.entries)) ? data.entries : [];
+    _lastServerFingerprint = entriesFingerprint(state.entries);
     setSyncStatus('saved');
   } catch (e) {
     console.error('Failed to load from server', e);
@@ -1273,15 +1292,130 @@ async function loadStateFromServer() {
   }
 }
 
-// Debounced save so rapid edits coalesce into one request.
+// Re-fetch server state and compare with what we have locally.
+// If they differ, ask the user what to do.
+// Returns true if the local state ended up replaced (so caller can re-render).
+async function reconcileWithServer({ silent = false } = {}) {
+  if (!state.username) return false;
+  setSyncStatus('syncing');
+  let serverData;
+  try {
+    const res = await fetch(`${API_BASE}/${encodeURIComponent(state.username)}`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    serverData = await res.json();
+  } catch (e) {
+    console.error('Failed to fetch for reconcile', e);
+    setSyncStatus('error');
+    if (!silent) showAlert('Could not reach the server to refresh. Check your connection.');
+    return false;
+  }
+
+  const serverEntries = (serverData && Array.isArray(serverData.entries)) ? serverData.entries : [];
+  const serverFp = entriesFingerprint(serverEntries);
+  const localFp = entriesFingerprint(state.entries);
+
+  if (serverFp === localFp) {
+    // Nothing changed anywhere. Update our snapshot and bail.
+    _lastServerFingerprint = serverFp;
+    setSyncStatus('saved');
+    return false;
+  }
+
+  // Server is different from local.
+  // Three sub-cases:
+  //   a) Local matches the last-known-server-fingerprint → local hasn't been
+  //      edited since last sync; server has new changes. Safe to auto-update.
+  //   b) Local has changes vs last-known-server, AND server also has changes →
+  //      conflict. Ask the user.
+  //   c) Local has changes vs last-known-server, server unchanged → impossible
+  //      here (we'd have hit the equal branch above).
+  const localUnchanged = localFp === _lastServerFingerprint;
+
+  if (localUnchanged) {
+    // Case a: just take the server version silently. The user didn't change
+    // anything locally, so there's nothing to lose.
+    state.entries = serverEntries;
+    _lastServerFingerprint = serverFp;
+    setSyncStatus('saved');
+    return true;
+  }
+
+  // Case b: real conflict. Local was edited; server was also edited.
+  const ok = await showConfirm(
+    'Your data was modified on another device since you opened this one. ' +
+    'Reload to get the latest from the server (your local unsaved changes will be lost), ' +
+    'or keep your local version (which will overwrite the server on your next save)?',
+    { okLabel: 'Reload from server', cancelLabel: 'Keep local', danger: false }
+  );
+
+  if (ok) {
+    state.entries = serverEntries;
+    _lastServerFingerprint = serverFp;
+    setSyncStatus('saved');
+    return true;
+  } else {
+    // User chose to keep local. Pretend local is now the source of truth
+    // by advancing our snapshot to match the server's current state — that
+    // way the next saveState() won't trip the conflict check again, and
+    // will simply overwrite the server.
+    _lastServerFingerprint = serverFp;
+    setSyncStatus('saved');
+    return false;
+  }
+}
+
+// Debounced save with stale-server detection.
 let _saveTimer = null;
 let _savePromiseChain = Promise.resolve();
+
 function saveState() {
   if (!state.username) return;
   setSyncStatus('syncing');
   clearTimeout(_saveTimer);
   _saveTimer = setTimeout(() => {
     _savePromiseChain = _savePromiseChain.then(async () => {
+      // First, peek at the server to see if it moved under us.
+      try {
+        const peekRes = await fetch(`${API_BASE}/${encodeURIComponent(state.username)}`, { cache: 'no-store' });
+        if (peekRes.ok) {
+          const peekData = await peekRes.json();
+          const peekEntries = (peekData && Array.isArray(peekData.entries)) ? peekData.entries : [];
+          const peekFp = entriesFingerprint(peekEntries);
+          if (peekFp !== _lastServerFingerprint) {
+            // Server changed since we last loaded. Warn before overwriting.
+            const overwrite = await showConfirm(
+              'Heads up: your data was changed on another device since you last loaded it. ' +
+              'Saving now will overwrite those remote changes with what you have here. Continue?',
+              { okLabel: 'Overwrite remote', cancelLabel: 'Cancel save', danger: true }
+            );
+            if (!overwrite) {
+              // Don't write. Offer to reload from server.
+              const reload = await showConfirm(
+                'Reload from server instead? (Your unsaved local changes will be lost.)',
+                { okLabel: 'Reload', cancelLabel: 'Keep editing', danger: false }
+              );
+              if (reload) {
+                state.entries = peekEntries;
+                _lastServerFingerprint = peekFp;
+                setSyncStatus('saved');
+                render();
+              } else {
+                // User wants to keep editing without saving yet. Advance the
+                // snapshot so the next save doesn't re-prompt.
+                _lastServerFingerprint = peekFp;
+                setSyncStatus('idle');
+              }
+              return;
+            }
+            // User confirmed overwrite — fall through and PUT.
+          }
+        }
+      } catch (e) {
+        // If the peek fails (offline, etc.), don't block the save attempt;
+        // it'll fail too and show the error.
+        console.warn('Pre-save peek failed (likely offline):', e);
+      }
+
       try {
         const res = await fetch(`${API_BASE}/${encodeURIComponent(state.username)}`, {
           method: 'PUT',
@@ -1289,6 +1423,7 @@ function saveState() {
           body: JSON.stringify({ entries: state.entries })
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        _lastServerFingerprint = entriesFingerprint(state.entries);
         setSyncStatus('saved');
       } catch (e) {
         console.error('Failed to save to server', e);
@@ -2295,6 +2430,32 @@ document.getElementById('importFile').addEventListener('change', e => {
 });
 
 document.getElementById('signOutBtn').addEventListener('click', signOut);
+
+document.getElementById('refreshBtn').addEventListener('click', async () => {
+  closeMobileSidebar();
+  if (!state.username) return;
+  const changed = await reconcileWithServer({ silent: false });
+  if (changed) render();
+});
+
+// Auto-refresh when the tab/app regains focus. Guarded so we only run it if
+// the user is actually signed in and we're not already mid-sync.
+let _focusReconcileRunning = false;
+async function maybeReconcileOnFocus() {
+  if (!state.username) return;
+  if (_focusReconcileRunning) return;
+  _focusReconcileRunning = true;
+  try {
+    const changed = await reconcileWithServer({ silent: true });
+    if (changed) render();
+  } finally {
+    _focusReconcileRunning = false;
+  }
+}
+window.addEventListener('focus', maybeReconcileOnFocus);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') maybeReconcileOnFocus();
+});
 
 document.getElementById('fab').addEventListener('click', () => {
   if (state.view.page === 'firm') openEntryModal(state.view.tab);
