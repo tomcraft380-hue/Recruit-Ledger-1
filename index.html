@@ -650,12 +650,12 @@
     line-height: 1.6;
     padding-top: 10px;
     border-top: 1px dashed var(--line-soft);
-  }
-
-  .entry-body.note-body {
-    white-space: normal;
+    /* Preserve line breaks and runs of whitespace exactly as typed, while
+       still wrapping long lines naturally. */
+    white-space: pre-wrap;
     word-break: break-word;
   }
+
   .entry-body.note-body a {
     color: var(--accent);
     text-decoration: none;
@@ -2027,8 +2027,9 @@ function linkify(text) {
     lastIndex = m.index + url.length;
   }
   out.push(escapeHtml(text.slice(lastIndex)));
-  // Preserve line breaks.
-  return out.join('').replace(/\n/g, '<br>');
+  // Line breaks are preserved by the CSS (white-space: pre-wrap on .entry-body),
+  // so we don't need to convert them to <br> here.
+  return out.join('');
 }
 
 // ============ MODAL ============
